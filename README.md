@@ -63,6 +63,8 @@ Comprehensive documentation is available in the `/docs` directory:
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   NEXT_PUBLIC_ADMIN_USERNAME=your_admin_username
+   NEXT_PUBLIC_ADMIN_PASSWORD=your_secure_password
    ```
 
 4. **Set up the database**
@@ -108,12 +110,12 @@ npm install
 
 ### 2. Environment Variables
 
-The `.env.local` file is already configured with your Supabase credentials:
+Create a `.env.local` file and configure it with your Supabase credentials:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://xeadiocltstrnzenvchf.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlYWRpb2NsdHN0cm56ZW52Y2hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NjIyODAsImV4cCI6MjA3NDMzODI4MH0.yFe2EKhVCShI-qYVINB5Tt4EiTbteodmNTmhEx4O1xA
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlYWRpb2NsdHN0cm56ZW52Y2hmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODc2MjI4MCwiZXhwIjoyMDc0MzM4MjgwfQ.e_HzVqZZ8CszcOeIfnAo7-rMA3_GVa2jwmh2dPx-Pds
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
 ### 3. Database Setup
@@ -177,7 +179,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 - **URL**: `/admin`
 - **Username**: `lakshmisai`
-- **Password**: `lakshmisai@4689`
+- **Password**: `your_secure_password`
 
 ## 📱 Application Structure
 
@@ -288,9 +290,9 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Admin Authentication (Optional)
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your_secure_password
+# Admin Authentication
+NEXT_PUBLIC_ADMIN_USERNAME=your_admin_username
+NEXT_PUBLIC_ADMIN_PASSWORD=your_secure_password
 ```
 
 ### Database Configuration

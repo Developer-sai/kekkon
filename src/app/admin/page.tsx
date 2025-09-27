@@ -22,8 +22,11 @@ export default function AdminLogin() {
     setIsLoading(true)
     setError('')
 
-    // Hardcoded credentials as specified
-    if (username === 'lakshmisai' && password === 'lakshmisai@4689') {
+    // Use environment variables for admin credentials
+    const adminUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'lakshmisai'
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'your_secure_password'
+    
+    if (username === adminUsername && password === adminPassword) {
       // Store login state in localStorage
       localStorage.setItem('admin_logged_in', 'true')
       router.push('/admin/dashboard')
