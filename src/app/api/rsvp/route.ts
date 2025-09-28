@@ -42,8 +42,7 @@ export async function POST(request: NextRequest) {
       attendance_status,
       number_of_guests: body.number_of_guests || 1,
       dietary_requirements: body.dietary_requirements || null,
-      special_requests: body.special_requests || null,
-      updated_at: new Date().toISOString()
+      special_requests: body.special_requests || null
     })
 
     // Track analytics
