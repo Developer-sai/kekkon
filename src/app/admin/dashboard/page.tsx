@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Heart, 
   Plus, 
@@ -19,11 +20,19 @@ import {
   Download,
   Trash2,
   LogOut,
-  QrCode
+  QrCode,
+  BarChart3,
+  Users,
+  MessageSquare,
+  Settings
 } from "lucide-react"
 import Link from "next/link"
 import { eventOperations, imageOperations, subEventOperations, Event, SocialLink, SubEvent } from '@/lib/supabase'
 import { qrGenerator } from '@/lib/qr-generator'
+import EventAnalytics from '@/components/admin/EventAnalytics'
+import RSVPManager from '@/components/admin/RSVPManager'
+import GuestbookManager from '@/components/admin/GuestbookManager'
+import MicrositeSettings from '@/components/admin/MicrositeSettings'
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -31,6 +40,8 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [activeTab, setActiveTab] = useState('events')
   const router = useRouter()
 
   // Form state
@@ -45,7 +56,13 @@ export default function AdminDashboard() {
     social_links: [{ name: '', url: '' }] as SocialLink[],
     // Custom QR Scanner fields
     custom_qr_url: '',
-    custom_qr_title: ''
+    custom_qr_title: '',
+    // Required properties
+    card_id: '',
+    microsite_mode: 'forever' as 'forever' | 'disposable',
+    is_active: true,
+    screenshot_blocking: false,
+    is_public: true
   })
   
   // Sub-events state
@@ -225,7 +242,12 @@ export default function AdminDashboard() {
         instructions: '',
         social_links: [{ name: '', url: '' }],
         custom_qr_url: '',
-        custom_qr_title: ''
+        custom_qr_title: '',
+        card_id: '',
+        microsite_mode: 'forever' as 'forever' | 'disposable',
+        is_active: true,
+        screenshot_blocking: false,
+        is_public: true
       })
       setCoverImage(null)
       setGalleryImages([])
@@ -287,39 +309,74 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <Image src="/logo.png" alt="Kekkon Logo" width={32} height={32} className="h-8 w-8" />
-            <span className="text-2xl font-bold text-gray-900">Kekkon Admin</span>
-          </Link>
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        {/* Dashboard Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-            <p className="text-gray-600">Create and manage your events</p>
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-lg">
+                <Heart className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Kekkon Admin</h1>
+                <p className="text-sm text-gray-600">Event Management Dashboard</p>
+              </div>
+            </div>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
-          <Button 
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Event
-          </Button>
         </div>
+      </div>
 
-        {/* Create Event Form */}
-        {showCreateForm && (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="events" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="rsvp" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              RSVPs
+            </TabsTrigger>
+            <TabsTrigger value="guestbook" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Guestbook
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="events" className="space-y-6">
+            {/* Create Event Button */}
+            {!showCreateForm && (
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Your Events</h2>
+                <Button 
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Event
+                </Button>
+              </div>
+            )}
+
+            {/* Create Event Form */}
+            {showCreateForm && (
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
             {/* Form Section */}
             <Card className="shadow-xl border-0">
@@ -734,9 +791,9 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Events List */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Event History</h2>
+            {/* Events List */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Event History</h2>
           
           {isLoading ? (
             <div className="text-center py-8">Loading events...</div>
@@ -792,6 +849,17 @@ export default function AdminDashboard() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          onClick={() => {
+                            setSelectedEvent(event)
+                            setActiveTab('analytics')
+                          }}
+                        >
+                          <BarChart3 className="h-4 w-4 mr-1" />
+                          Manage
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
                           onClick={() => downloadQRCode(event.id)}
                         >
                           <Download className="h-4 w-4 mr-1" />
@@ -837,9 +905,67 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
               ))}
+              </div>
+            )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+             {selectedEvent ? (
+               <EventAnalytics event={selectedEvent} />
+             ) : (
+               <Card>
+                 <CardContent className="text-center py-8">
+                   <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Select an Event</h3>
+                   <p className="text-gray-600">Choose an event from the Events tab to view analytics</p>
+                 </CardContent>
+               </Card>
+             )}
+           </TabsContent>
+
+           <TabsContent value="rsvp">
+             {selectedEvent ? (
+               <RSVPManager event={selectedEvent} />
+             ) : (
+               <Card>
+                 <CardContent className="text-center py-8">
+                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Select an Event</h3>
+                   <p className="text-gray-600">Choose an event from the Events tab to manage RSVPs</p>
+                 </CardContent>
+               </Card>
+             )}
+           </TabsContent>
+
+           <TabsContent value="guestbook">
+             {selectedEvent ? (
+               <GuestbookManager event={selectedEvent} />
+             ) : (
+               <Card>
+                 <CardContent className="text-center py-8">
+                   <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Select an Event</h3>
+                   <p className="text-gray-600">Choose an event from the Events tab to manage guestbook entries</p>
+                 </CardContent>
+               </Card>
+             )}
+           </TabsContent>
+
+           <TabsContent value="settings">
+             {selectedEvent ? (
+               <MicrositeSettings event={selectedEvent} />
+             ) : (
+               <Card>
+                 <CardContent className="text-center py-8">
+                   <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Select an Event</h3>
+                   <p className="text-gray-600">Choose an event from the Events tab to manage settings</p>
+                 </CardContent>
+               </Card>
+             )}
+           </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

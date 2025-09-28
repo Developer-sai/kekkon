@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { 
   Calendar, 
   Clock, 
@@ -15,9 +16,12 @@ import {
   Twitter,
   Globe,
   Phone,
-  Mail
+  Mail,
+  MessageSquare,
+  Camera,
+  Users
 } from "lucide-react"
-import { eventOperations, imageOperations, subEventOperations } from '@/lib/supabase'
+import { eventOperations, imageOperations, subEventOperations, analyticsOperations } from '@/lib/supabase'
 
 interface EventPageProps {
   params: {
@@ -38,21 +42,35 @@ const getSocialIcon = (name: string) => {
 }
 
 export default async function EventPage({ params }: EventPageProps) {
-  const { card_id } = params
+  const { card_id } = await params
 
   // Fetch event data
-  const event = await eventOperations.getEventById(card_id)
+  const event = await eventOperations.getEventByCardId(card_id)
   if (!event) {
     notFound()
   }
 
+  // Track page view
+  try {
+    await analyticsOperations.trackEvent(
+      event.id,
+      'page_viewed',
+      {
+        card_id: card_id,
+        timestamp: new Date().toISOString()
+      }
+    )
+  } catch (err) {
+    console.error('Failed to track page view:', err)
+  }
+
   // Fetch event images
-  const images = await imageOperations.getImagesForEvent()
+  const images = await imageOperations.getImagesForEvent(event.id)
   const coverImage = images?.find(img => img.type === 'cover')
   const galleryImages = images?.filter(img => img.type === 'gallery') || []
 
   // Fetch sub-events
-  const subEvents = await subEventOperations.getSubEventsByEventId(card_id)
+  const subEvents = await subEventOperations.getSubEventsByEventId(event.id)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -264,13 +282,21 @@ export default async function EventPage({ params }: EventPageProps) {
               </Card>
             )}
 
-            {/* Gallery */}
+            {/* Gallery Preview */}
             {galleryImages.length > 0 && (
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Gallery</h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">Gallery</h2>
+                    <Link href={`/${card_id}/gallery`}>
+                      <Button variant="outline" size="sm">
+                        <Camera className="h-4 w-4 mr-2" />
+                        View All
+                      </Button>
+                    </Link>
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {galleryImages.map((image, index) => (
+                    {galleryImages.slice(0, 6).map((image, index) => (
                       <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden">
                         <Image
                           src={image.url}
@@ -281,6 +307,13 @@ export default async function EventPage({ params }: EventPageProps) {
                       </div>
                     ))}
                   </div>
+                  {galleryImages.length > 6 && (
+                    <div className="text-center mt-4">
+                      <p className="text-sm text-gray-600">
+                        +{galleryImages.length - 6} more photos
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -302,11 +335,25 @@ export default async function EventPage({ params }: EventPageProps) {
                     </Link>
                   )}
                   
-                  {event.social_links?.find(link => link.name.toLowerCase().includes('rsvp')) && (
-                    <Link href={`/${card_id}/rsvp`}>
-                      <Button className="w-full justify-start bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                        <Heart className="h-4 w-4 mr-2" />
-                        RSVP Now
+                  <Link href={`/${card_id}/rsvp`}>
+                    <Button className="w-full justify-start bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                      <Users className="h-4 w-4 mr-2" />
+                      RSVP Now
+                    </Button>
+                  </Link>
+
+                  <Link href={`/${card_id}/guestbook`}>
+                    <Button variant="outline" className="w-full justify-start">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Leave a Message
+                    </Button>
+                  </Link>
+
+                  {galleryImages.length > 0 && (
+                    <Link href={`/${card_id}/gallery`}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <Camera className="h-4 w-4 mr-2" />
+                        View Gallery
                       </Button>
                     </Link>
                   )}
